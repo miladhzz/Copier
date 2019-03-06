@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace MSK_Copier
+namespace Copier
 {
     public partial class Form1 : Form
     {
@@ -20,21 +20,50 @@ namespace MSK_Copier
 
         private void BtnCopy_Click(object sender, EventArgs e)
         {
+            var operation = Operation.Yes;
             var completedList = new List<string>();
             var inCompletedList = new List<string>();
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            for (var i=0; i<dataGridView1.RowCount -1 ; i++)
             {
-                var sourceFile = row.Cells[0].Value.ToString();
-                foreach (DataGridViewRow row2 in dataGridView2.Rows)
+                var row = dataGridView1.Rows[i];
+                var sourceFile = row.Cells[0].Value?.ToString();
+                for (var j = 0; j < dataGridView2.RowCount - 1; j++)
                 {
-                    var destinationFolder = row.Cells[0].Value.ToString();
+                    var row2 = dataGridView2.Rows[j];
+                    var destinationFolder = row2.Cells[0].Value?.ToString();
                     if (File.Exists(sourceFile))
                     {
                         if (File.Exists($@"{destinationFolder}\{Path.GetFileName(sourceFile)}"))
                         {
-                            var dialogResult = new Message().ShowDialog(); 
+                            if (!(operation == Operation.YesToAll || operation == Operation.NoToAll))
+                            {
+                                var message = new Message($@"File {destinationFolder}\{Path.GetFileName(sourceFile)} is already exists, do you want to replace it?");
+                                message.ShowDialog();
+                                switch (message.Operation)
+                                {
+                                    case Operation.Yes:
+                                        operation = Operation.Yes;
+                                        break;
+                                    case Operation.YesToAll:
+                                        operation = Operation.YesToAll;
+                                        break;
+                                    case Operation.No:
+                                        operation = Operation.No;
+                                        break;
+                                    case Operation.NoToAll:
+                                        operation = Operation.NoToAll;
+                                        break;
+                                    case Operation.Cancel:
+                                        operation = Operation.Cancel;
+                                        break;
+                                }
+                            }
                         }
-                        File.Copy(sourceFile, $@"{destinationFolder}\{Path.GetFileName(sourceFile)}",true);
+                        if (operation == Operation.Yes || operation == Operation.YesToAll)
+                        {
+                            File.Copy(sourceFile, $@"{destinationFolder}\{Path.GetFileName(sourceFile)}", true);
+                            completedList.Add(sourceFile);
+                        }
                     }
                     else
                     {

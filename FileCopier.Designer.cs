@@ -1,4 +1,4 @@
-﻿namespace MSK_Copier
+﻿namespace Copier
 {
     partial class Form1
     {
